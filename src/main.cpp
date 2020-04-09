@@ -2,9 +2,9 @@
 #include <WebServer.h>     // Replace with WebServer.h for ESP32
 #include <AutoConnect.h>   // handles wifi setup
 
-#define RED_PIN    13
-#define YELLOW_PIN 12
-#define GREEN_PIN  14
+#define RED_PIN    32
+#define YELLOW_PIN 33
+#define GREEN_PIN  25
 
 
 WebServer Server;          // Replace with WebServer for ESP32
