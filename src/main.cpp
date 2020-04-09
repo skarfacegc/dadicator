@@ -35,10 +35,9 @@ void setup() {
 
   // make sure the leds are off on boot
   digitalWrite(RED_PIN, LOW);
-  digitalWrite(GREEN_PIN, LOW);
   digitalWrite(YELLOW_PIN, LOW);
-
-
+  digitalWrite(GREEN_PIN, LOW);
+  
   // setup provisioning AP name
   Config.apid = "dadicator";
   Portal.config(Config);
@@ -173,16 +172,22 @@ if(greenLed == HIGH) {
         // red led control
         html += "<p>Red Led : ";
         html += redLedStatusString;
-        html += "</p>\n";
-
-        // green led control
-        html += "<p>Green Led : ";
-        html += greenLedStatusString;
+        html += "<br> <a href='/led/red/on'>Turn On</a>";
+        html += " <a href='/led/red/off'>Turn Off</a>";
         html += "</p>\n";
 
         // yellow led control
         html += "<p>Yellow Led : ";
         html += yellowLedStatusString;
+        html += "<br> <a href='/led/yellow/on'>Turn On</a>";
+        html += " <a href='/led/yellow/off'>Turn Off</a>";
+        html += "</p>\n";
+
+        // green led control
+        html += "<p>Green Led : ";
+        html += greenLedStatusString;
+        html += "<br> <a href='/led/green/on'>Turn On</a>";
+        html += " <a href='/led/green/off'>Turn Off</a>";
         html += "</p>\n";
 
         html += "</html>\n";
