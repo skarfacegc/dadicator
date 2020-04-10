@@ -1,3 +1,4 @@
+#include <string>
 #include <WiFi.h>          // Replace with WiFi.h for ESP32
 #include <WebServer.h>     // Replace with WebServer.h for ESP32
 #include <AutoConnect.h>   // handles wifi setup
@@ -6,6 +7,10 @@
 #define YELLOW_PIN 33
 #define GREEN_PIN  25
 
+#define RED    1
+#define YELLOW 2
+#define GREEN  3
+
 
 WebServer Server;          // Replace with WebServer for ESP32
 AutoConnect Portal(Server);
@@ -13,13 +18,21 @@ AutoConnectConfig Config;
 
 
 // ack globals for state tracking
-byte redLedState = LOW;
-byte yellowLedState = LOW;
 byte greenLedState = LOW;
+byte yellowLedState = LOW;
+byte redLedState = LOW;
 
+
+
+
+// prototypes
 void rootPage(void);
-void processLedRequest(String, String);
-String getHTML(byte, byte, byte, String);
+void processLedRequest(std::string, std::string);
+void setLights(void);
+std::string getHTML(void);
+std::string getHTMLHeader(void);
+std::string getLightHTML(int);
+std::string getHTMLFooter(void);
 
 
 
@@ -51,8 +64,12 @@ void setup() {
 
   // Handle the led requests
   Server.on("/led/{}/{}", []() {
-    String selectedLed = Server.pathArg(0);
-    String ledAction = Server.pathArg(1);
+    std::string selectedLed;
+    std::string ledAction;
+    
+    selectedLed = Server.pathArg(0).c_str();
+    ledAction = Server.pathArg(1).c_str();
+
     processLedRequest(selectedLed, ledAction);
   });
 
@@ -63,60 +80,39 @@ void setup() {
 }
 
 void loop() {
+    setLights();
     Portal.handleClient();
 }
 
 
 
 void rootPage(void) {
-  Server.send(200, "text/html", getHTML(redLedState,yellowLedState,greenLedState, "welcome"));
+  Server.send(200, "text/html", getHTML().c_str());
 }
 
-void processLedRequest(String selectedLed, String ledAction) {
-
-  byte ledPin = 0;
+void processLedRequest(std::string selectedLed, std::string ledAction) {
   byte newState = LOW;
   bool goodState = false;
-  bool goodLed = false;
-  String message;
 
   // make sure we have a valid state
-  if(ledAction.compareTo("on") == 0) {
+  if(ledAction == "on") {
     newState = HIGH;
     goodState = true;
-    message = "Turning on ";
-  } else if(ledAction.compareTo("off") == 0) {
+  } else if(ledAction == "off") {
     newState = LOW;
     goodState = true;
-    message = "Turning off ";
   } else {
     goodState = false;
-    message = "Invalid state ";
-    message += ledAction;
   }
 
   // Make sure we have a valid LED
   // If we have a valid state and a valid led set the led state tracking variable, select the pin to set,
-  // and update the message
-  if(selectedLed.compareTo("red") == 0) {
-    goodLed = true;
+  if(selectedLed == "red") {
     if(goodState) redLedState = newState;
-    ledPin = RED_PIN;
-    message += "red led";
-  } else if(selectedLed.compareTo("yellow") == 0) {
-    goodLed = true;
+  } else if(selectedLed == "yellow") {
     if(goodState) yellowLedState = newState;
-    ledPin = YELLOW_PIN;
-    message += "yellow led";
-  } else if(selectedLed.compareTo("green") == 0) {
-    goodLed = true;
+  } else if(selectedLed == "green") {
     if(goodState) greenLedState = newState;
-    ledPin = GREEN_PIN;
-    message += "green led";
-  } else {
-    goodLed = false;
-    message = "Invalid led chosen: ";
-    message += selectedLed;
   }
 
   // at this point, we know if we got a good state (on/off)
@@ -124,72 +120,140 @@ void processLedRequest(String selectedLed, String ledAction) {
   // The global led state tracking has been udpated
 
   // if we have a valid state and a valid pin we can do the thing
-  if(goodLed && goodState) digitalWrite(ledPin,newState);
-
-  Server.send(200, "text/html", getHTML(redLedState,yellowLedState,greenLedState,message));
-
+  setLights();
+  Server.send(200, "text/html", getHTML().c_str());
 }
 
 
 // Contains the html for the web page
-String getHTML(byte redLed, byte yellowLed, byte greenLed, String message) {
-  String redLedStatusString;
-  String yellowLedStatusString;
-  String greenLedStatusString;
+std::string getHTML(void) {
+  std::string html;
 
-  // Set the light Status strings
-  if(redLed == HIGH) {
-    redLedStatusString = "on";
-  } else {
-    redLedStatusString = "off";
-  }
+  // /led/{color}/{state}
+  html = getHTMLHeader() +
+         getLightHTML(RED) +
+         getLightHTML(YELLOW) + 
+         getLightHTML(GREEN) +
+         getHTMLFooter();
 
-  if(yellowLed == HIGH) {
-    yellowLedStatusString = "on";
-  } else {
-    yellowLedStatusString = "off";
-  }
-
-if(greenLed == HIGH) {
-    greenLedStatusString = "on";
-  } else {
-    greenLedStatusString = "off";
-  }
+  return html;
+}
 
 
-  
-  String html = "<!DOCTYPE html>\n";
-        html += "<html>\n";
-        html += "<head>\n";
-        html += "<title>Dadicator</title>\n";
-        html += "</head>\n";
-        html += "<h1>dadicator</h1>\n";
 
-        if(message.compareTo("") != 0){
-          html += message;
+std::string getHTMLHeader(void) {
+  const std::string str =
+    R"(
+      <!DOCTYPE html>
+      <html lang=\"en\">
+      <head>
+        <meta charset=\"UTF-8\">
+        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
+        <title>Dadicator</title>
+
+        <style>
+        .body {
+            background-color: rgb(255,255,255);
         }
+        .lamp {
+            height: 250px;
+            width: 250px;
+            border-style: solid;
+            border-width: 2px;
+            border-radius: 200px;
+        }
+        .lampRedOn {
+            background-color: rgb(255,0,0);
+        }
+        .lampYellowOn {
+            background-color: rgb(255, 255, 0);
+        }
+        .lampGreenOn {
+            background-color: rgb(0,255,0);
+        }
+        .lampGreenOff {
+            background-color: rgb(0, 70, 0);
+        }
+        .lampYellowOff {
+            background-color: rgb(70, 70, 0);
+        }
+        .lampRedOff {
+            background-color: rgb(70, 0, 0);
+        }
+      </style>
+    </head>
+    <body>
+      <div id="trafficLight">
+  )";
+  return str; 
+}
 
-        // red led control
-        html += "<p>Red Led : ";
-        html += redLedStatusString;
-        html += "<br> <a href='/led/red/on'>Turn On</a>";
-        html += " <a href='/led/red/off'>Turn Off</a>";
-        html += "</p>\n";
+// Bulid each lightbulb
+std::string getLightHTML(int color) {
+    std::string html;
+    std::string divOpen;
+    std::string divClose; 
+    std::string onOff;
+    std::string href;
 
-        // yellow led control
-        html += "<p>Yellow Led : ";
-        html += yellowLedStatusString;
-        html += "<br> <a href='/led/yellow/on'>Turn On</a>";
-        html += " <a href='/led/yellow/off'>Turn Off</a>";
-        html += "</p>\n";
 
-        // green led control
-        html += "<p>Green Led : ";
-        html += greenLedStatusString;
-        html += "<br> <a href='/led/green/on'>Turn On</a>";
-        html += " <a href='/led/green/off'>Turn Off</a>";
-        html += "</p>\n";
+    if(color == GREEN) {
+      if(greenLedState == LOW) {
+        html = "<a href=\"/led/green/on\">";
+        onOff = " lampGreenOff\"";
+      } else {
+        html = "<a href=\"/led/green/off\">";
+        onOff = "lampGreenOn";
+      }
+      html += "<div class=\"lamp " + onOff + "\" id=\"Green\"></div></a>";
+    } else if(color == YELLOW) {
+      if(yellowLedState == LOW) {
+        html = "<a href=\"/led/yellow/on\">";
+        onOff = " lampYellowOff\"";
+      } else {
+        html = "<a href=\"/led/yellow/off\">";
+        onOff = "lampYellowOn";
+      }
+      html += "<div class=\"lamp " + onOff + "\" id=\"Yellow\"></div></a>";
+    } else if(color == RED) {
+      if(redLedState == LOW) {
+        html = "<a href=\"/led/red/on\">";
+        onOff = " lampRedOff\"";
+      } else {
+        html = "<a href=\"/led/red/off\">";
+        onOff = "lampRedOn";
+      }
+      html += "<div class=\"lamp " + onOff + "\" id=\"Red\"></div></a>";
+    } else {
+      html = "Error";
+    }
 
-        html += "</html>\n";
-  return html; 
+    return html;
+}
+
+std::string getHTMLFooter(void) {
+  const std::string str = R"(</div></body></html>)";
+  return str;
+}
+
+
+void setLights(void) {
+  if(redLedState == HIGH) {
+    digitalWrite(RED_PIN, HIGH);
+  } else if(redLedState == LOW) {
+    digitalWrite(RED_PIN, LOW);
+  }
+
+  if(yellowLedState == HIGH) {
+    digitalWrite(YELLOW_PIN, HIGH);
+  } else if(yellowLedState == LOW) {
+    digitalWrite(YELLOW_PIN, LOW);
+  }
+
+  if(greenLedState == HIGH) {
+    digitalWrite(GREEN_PIN, HIGH);
+  } else if(greenLedState == LOW) {
+    digitalWrite(GREEN_PIN, LOW);
+  }
+
 }
