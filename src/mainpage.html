@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dadicator</title>
+
+    <style>
+    .body {
+        background-color: rgb(255,255,255);
+        font-family: sans-serif;
+    }
+    .lamp {
+        height: 250px;
+        width: 250px;
+        border-style: solid;
+        border-width: 2px;
+        border-radius: 200px;
+    }
+    .lampRedOn {
+        background-color: rgb(255,0,0);
+    }
+    .lampYellowOn {
+        background-color: rgb(255, 255, 0);
+    }
+    .lampGreenOn {
+        background-color: rgb(0,255,0);
+    }
+    .lampGreenOff {
+        background-color: rgb(0, 70, 0);
+    }
+    .lampYellowOff {
+        background-color: rgb(70, 70, 0);
+    }
+    .lampRedOff {
+        background-color: rgb(70, 0, 0);
+    }
+    </style>
+
+</head>
+<body>
+    <h1>Dadicator</h1>
+    <div id="trafficLight">
+        <div class="lamp lampGreenOff" id="Red"></div>
+        <div class="lamp lampYellowOff" id="Yellow"></div>
+        <div class="lamp lampRedOff" id="Green"></div>
+    </div>
+</body>
+</html>
