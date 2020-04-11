@@ -1,6 +1,6 @@
 #include <string>
-#include <WiFi.h>          // Replace with WiFi.h for ESP32
-#include <WebServer.h>     // Replace with WebServer.h for ESP32
+#include <WiFi.h>          
+#include <WebServer.h>
 #include <AutoConnect.h>   // handles wifi setup
 
 #define RED_PIN    32
@@ -12,7 +12,7 @@
 #define GREEN  3
 
 
-WebServer Server;          // Replace with WebServer for ESP32
+WebServer Server;
 AutoConnect Portal(Server);
 AutoConnectConfig Config;
 
@@ -33,9 +33,6 @@ void processLedRequest(std::string, std::string);
 void setLights(void);
 void updateLEDState(std::string, std::string);
 std::string getHTML(void);
-std::string getHTMLHeader(void);
-std::string getLightHTML(int);
-std::string getHTMLFooter(void);
 std::string getLEDStatusJSON();
 
 
@@ -101,7 +98,7 @@ void loop() {
 }
 
 
-
+// Returns JSON representing current light state
 std::string getLEDStatusJSON() {
   std::string str;
 
@@ -123,11 +120,8 @@ std::string getLEDStatusJSON() {
   } else {
     str += "\"green_led\": false";
   }
-
   str += "}";
-
   return str;
-
 }
 
 // Sets the requested led to the desired state
@@ -149,11 +143,9 @@ void updateLEDState(std::string selectedLed, std::string selectedLedState) {
   } else if(selectedLed == "green") {
     greenLedState = newState;
   }
-
 }
 
-
-
+// Show the HTML
 void rootPage(void) {
   Server.send(200, "text/html", getHTML().c_str());
 }
@@ -192,26 +184,29 @@ void processLedRequest(std::string selectedLed, std::string ledAction) {
   Server.send(200, "text/html", getHTML().c_str());
 }
 
+// This reads the led state globals and sets the appropriate lights HIGH or LOW
+void setLights(void) {
+  if(redLedState == HIGH) {
+    digitalWrite(RED_PIN, HIGH);
+  } else if(redLedState == LOW) {
+    digitalWrite(RED_PIN, LOW);
+  }
 
+  if(yellowLedState == HIGH) {
+    digitalWrite(YELLOW_PIN, HIGH);
+  } else if(yellowLedState == LOW) {
+    digitalWrite(YELLOW_PIN, LOW);
+  }
 
-
-// Contains the html for the web page
-std::string getHTML(void) {
-  std::string html;
-
-  // /led/{color}/{state}
-  html = getHTMLHeader();
-        //  getLightHTML(RED) +
-        //  getLightHTML(YELLOW) + 
-        //  getLightHTML(GREEN) +
-        //  getHTMLFooter();
-
-  return html;
+  if(greenLedState == HIGH) {
+    digitalWrite(GREEN_PIN, HIGH);
+  } else if(greenLedState == LOW) {
+    digitalWrite(GREEN_PIN, LOW);
+  }
 }
 
-
-
-std::string getHTMLHeader(void) {
+// Just returns the static HTML page
+std::string getHTML(void) {
   const std::string str =
     R"(
       <!DOCTYPE html>
@@ -320,31 +315,4 @@ std::string getHTMLHeader(void) {
   </html>
   )";
   return str; 
-}
-
-std::string getHTMLFooter(void) {
-  const std::string str = R"(</div></body></html>)";
-  return str;
-}
-
-
-void setLights(void) {
-  if(redLedState == HIGH) {
-    digitalWrite(RED_PIN, HIGH);
-  } else if(redLedState == LOW) {
-    digitalWrite(RED_PIN, LOW);
-  }
-
-  if(yellowLedState == HIGH) {
-    digitalWrite(YELLOW_PIN, HIGH);
-  } else if(yellowLedState == LOW) {
-    digitalWrite(YELLOW_PIN, LOW);
-  }
-
-  if(greenLedState == HIGH) {
-    digitalWrite(GREEN_PIN, HIGH);
-  } else if(greenLedState == LOW) {
-    digitalWrite(GREEN_PIN, LOW);
-  }
-
 }
