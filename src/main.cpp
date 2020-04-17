@@ -69,16 +69,6 @@ void setup() {
 
   // Handle the led requests
   Server.on("/led/{}/{}", []() {
-    std::string selectedLed;
-    std::string ledAction;
-    
-    selectedLed = Server.pathArg(0).c_str();
-    ledAction = Server.pathArg(1).c_str();
-
-    processLedRequest(selectedLed, ledAction);
-  });
-
-  Server.on("/json_led/{}/{}", []() {
     std::string selectedLed = Server.pathArg(0).c_str();
     std::string selectedLedState = Server.pathArg(1).c_str();
 
@@ -218,11 +208,13 @@ std::string getHTML(void) {
 
         <style>
         .body {
-            background-color: rgb(255,255,255);
+            background-color: rgb(200,200,200);
         }
+
         .lamp {
             height: 250px;
             width: 250px;
+            margin-top: 5px;
             border-style: solid;
             border-width: 2px;
             border-radius: 200px;
@@ -245,11 +237,17 @@ std::string getHTML(void) {
         .lampRedOff {
             background-color: rgb(70, 0, 0);
         }
+        .settings {
+          margin-top: 50px;
+          font-size: 10px;
+          font-family: sans-serif;
+        }
       </style>
       <script type="text/javascript">
           let lightState = {};
           window.onload = () => {
-            getLightState().then(() => updateLights() );
+            getLightState().then(() => updateLights());
+            setInterval(() => getLightState().then(() => updateLights()), 5000);
           };
 
           async function getLightState() {
@@ -262,7 +260,7 @@ std::string getHTML(void) {
             let lightEntity = document.getElementById(lightID);
             const classOnString = "lamp"+lightID+"On";
             const classOffString = "lamp"+lightID+"Off";
-            let url = "/json_led/";
+            let url = "/led/";
 
             // if off, toggle on.  if on, toggle off
             if(lightEntity.classList.contains(classOffString)) {
@@ -311,6 +309,8 @@ std::string getHTML(void) {
         <div onclick='toggleLight("Yellow")' class="lamp lampYellowOff" id="Yellow"></div>
         <div onclick='toggleLight("Red")' class="lamp lampRedOff" id="Red"></div>
       </div>
+      <div class="settings">
+        <a href="/_ac">Wifi Settings</a></div>
     </body>
   </html>
   )";
