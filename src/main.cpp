@@ -247,7 +247,7 @@ std::string getHTML(void) {
           let lightState = {};
           window.onload = () => {
             getLightState().then(() => updateLights());
-            setInterval(() => getLightState().then(() => updateLights()), 5000);
+            // setInterval(() => getLightState().then(() => updateLights()), 5000);
           };
 
           async function getLightState() {
