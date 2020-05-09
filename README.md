@@ -22,8 +22,10 @@ Simple ESP32 project with a webserver to controll 3 led lights.  Used to let kid
 
 # Notes
 - LEDs aren't glued in, didn't know if you wanted to change order etc.
+- case is openable
 - Webserver is single threaded, it's easy to get missed requests if you try
 - You can program the board over the USB port
+- the power LED backlights the bottom LED a bit so the green light looks red until it's actually lit.
 
 
 # Enjoy!
