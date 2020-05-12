@@ -7,6 +7,7 @@ Simple ESP32 project with a webserver to controll 3 led lights.  Used to let kid
 - Plug into usb
 - Wait ~30 seconds or so for a ```dadicator``` access point to show up
 - Connect to the ```dadicator``` AP
+  - Password is ```12345678```
 - Add a new AP from the menu (this should be your wifi credentials)
 - After a few seconds it should connect to your network, the setup screen will tell you the new IP
 - The provisioning AP will spin up if it can't connect to wifi after 30 seconds
